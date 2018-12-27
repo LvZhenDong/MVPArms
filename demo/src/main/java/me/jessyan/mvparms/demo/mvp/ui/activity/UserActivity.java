@@ -51,20 +51,16 @@ import static com.jess.arms.utils.Preconditions.checkNotNull;
  * <a href="https://github.com/JessYanCoding">Follow me</a>
  * ================================================
  */
-public class UserActivity extends BaseActivity<UserPresenter> implements UserContract.View, SwipeRefreshLayout.OnRefreshListener {
+public class UserActivity extends BaseActivity<UserPresenter> implements UserContract.View {
 
     @BindView(R.id.recyclerView)
     RecyclerView mRecyclerView;
-    @BindView(R.id.swipeRefreshLayout)
-    SwipeRefreshLayout mSwipeRefreshLayout;
     @Inject
     RxPermissions mRxPermissions;
     @Inject
     RecyclerView.LayoutManager mLayoutManager;
     @Inject
     RecyclerView.Adapter mAdapter;
-
-    private boolean isLoadingMore;
 
     @Override
     public void setupActivityComponent(@NonNull AppComponent appComponent) {
@@ -85,67 +81,13 @@ public class UserActivity extends BaseActivity<UserPresenter> implements UserCon
     public void initData(@Nullable Bundle savedInstanceState) {
         initRecyclerView();
         mRecyclerView.setAdapter(mAdapter);
-        initPaginate();
+        mPresenter.requestUsers(false);
     }
-
-
-    @Override
-    public void onRefresh() {
-        mPresenter.requestUsers(true);
-    }
-
     /**
      * 初始化RecyclerView
      */
     private void initRecyclerView() {
-        mSwipeRefreshLayout.setOnRefreshListener(this);
         ArmsUtils.configRecyclerView(mRecyclerView, mLayoutManager);
-    }
-
-
-    @Override
-    public void showLoading() {
-        Timber.tag(TAG).w("showLoading");
-        mSwipeRefreshLayout.setRefreshing(true);
-    }
-
-    @Override
-    public void hideLoading() {
-        Timber.tag(TAG).w("hideLoading");
-        mSwipeRefreshLayout.setRefreshing(false);
-    }
-
-    @Override
-    public void showMessage(@NonNull String message) {
-        checkNotNull(message);
-        ArmsUtils.snackbarText(message);
-    }
-
-    @Override
-    public void launchActivity(@NonNull Intent intent) {
-        checkNotNull(intent);
-        ArmsUtils.startActivity(intent);
-    }
-
-    @Override
-    public void killMyself() {
-        finish();
-    }
-
-    /**
-     * 开始加载更多
-     */
-    @Override
-    public void startLoadMore() {
-        isLoadingMore = true;
-    }
-
-    /**
-     * 结束加载更多
-     */
-    @Override
-    public void endLoadMore() {
-        isLoadingMore = false;
     }
 
     @Override
@@ -156,13 +98,6 @@ public class UserActivity extends BaseActivity<UserPresenter> implements UserCon
     @Override
     public RxPermissions getRxPermissions() {
         return mRxPermissions;
-    }
-
-    /**
-     * 初始化Paginate,用于加载更多
-     */
-    private void initPaginate() {
-        mPresenter.requestUsers(false);
     }
 
     @Override

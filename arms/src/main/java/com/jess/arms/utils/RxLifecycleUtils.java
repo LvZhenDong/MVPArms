@@ -111,4 +111,21 @@ public class RxLifecycleUtils {
             throw new IllegalArgumentException("Lifecycleable not match");
         }
     }
+
+    /**
+     * 绑定到destroy事件
+     * @param view
+     * @param <T>
+     * @return
+     */
+    public static <T> LifecycleTransformer<T> bindToDestory(@NonNull IView view){
+        Preconditions.checkNotNull(view, "view == null");
+        if (view instanceof ActivityLifecycleable) {
+            return bindUntilEvent(view,ActivityEvent.DESTROY);
+        } else if (view instanceof FragmentLifecycleable) {
+            return bindUntilEvent(view,FragmentEvent.DESTROY);
+        } else {
+            throw new IllegalArgumentException("Lifecycleable not match");
+        }
+    }
 }

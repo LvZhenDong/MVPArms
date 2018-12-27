@@ -40,6 +40,7 @@ import com.jess.arms.di.component.AppComponent;
 import com.jess.arms.integration.AppManager;
 
 import java.security.MessageDigest;
+import java.util.List;
 
 /**
  * ================================================
@@ -365,6 +366,11 @@ public class ArmsUtils {
             return true;
         }
         return false;
+    }
+
+    public static boolean isEmptyList(List list){
+
+        return list == null || list.size() == 0;
     }
 
     /**

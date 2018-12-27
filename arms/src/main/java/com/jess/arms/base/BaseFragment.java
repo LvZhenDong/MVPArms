@@ -16,6 +16,7 @@
 package com.jess.arms.base;
 
 import android.content.Context;
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -24,6 +25,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
+import com.jess.arms.base.delegate.FragmentUserVisibleController;
 import com.jess.arms.base.delegate.IFragment;
 import com.jess.arms.integration.cache.Cache;
 import com.jess.arms.integration.cache.CacheType;
@@ -41,17 +43,9 @@ import io.reactivex.subjects.Subject;
  * ================================================
  * 因为 Java 只能单继承, 所以如果要用到需要继承特定 @{@link Fragment} 的三方库, 那你就需要自己自定义 @{@link Fragment}
  * 继承于这个特定的 @{@link Fragment}, 然后再按照 {@link BaseFragment} 的格式, 将代码复制过去, 记住一定要实现{@link IFragment}
- *
- * @see <a href="https://github.com/JessYanCoding/MVPArms/wiki">请配合官方 Wiki 文档学习本框架</a>
- * @see <a href="https://github.com/JessYanCoding/MVPArms/wiki/UpdateLog">更新日志, 升级必看!</a>
- * @see <a href="https://github.com/JessYanCoding/MVPArms/wiki/Issues">常见 Issues, 踩坑必看!</a>
- * @see <a href="https://github.com/JessYanCoding/ArmsComponent/wiki">MVPArms 官方组件化方案 ArmsComponent, 进阶指南!</a>
- * Created by JessYan on 22/03/2016
- * <a href="mailto:jess.yan.effort@gmail.com">Contact me</a>
- * <a href="https://github.com/JessYanCoding">Follow me</a>
  * ================================================
  */
-public abstract class BaseFragment<P extends IPresenter> extends Fragment implements IFragment, FragmentLifecycleable {
+public abstract class BaseFragment<P extends IPresenter> extends Fragment implements IFragment, FragmentLifecycleable,FragmentUserVisibleController.UserVisibleCallback {
     protected final String TAG = this.getClass().getSimpleName();
     private final BehaviorSubject<FragmentEvent> mLifecycleSubject = BehaviorSubject.create();
     private Cache<String, Object> mCache;
@@ -59,6 +53,13 @@ public abstract class BaseFragment<P extends IPresenter> extends Fragment implem
     @Inject
     @Nullable
     protected P mPresenter;//如果当前页面逻辑简单, Presenter 可以为 null
+
+    protected boolean isFirstVisiableToUser = true;
+    private FragmentUserVisibleController userVisibleController;
+
+    public BaseFragment(){
+        userVisibleController = new FragmentUserVisibleController(this, this);
+    }
 
     @NonNull
     @Override
@@ -100,6 +101,62 @@ public abstract class BaseFragment<P extends IPresenter> extends Fragment implem
         mContext = null;
     }
 
+    @Override
+    public void onActivityCreated(@Nullable Bundle savedInstanceState) {
+        super.onActivityCreated(savedInstanceState);
+        userVisibleController.activityCreated();
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        userVisibleController.resume();
+    }
+
+    @Override
+    public void onPause() {
+        super.onPause();
+        userVisibleController.pause();
+    }
+
+    @Override
+    public void setUserVisibleHint(boolean isVisibleToUser) {
+        super.setUserVisibleHint(isVisibleToUser);
+        userVisibleController.setUserVisibleHint(isVisibleToUser);
+    }
+
+    @Override
+    public void setWaitingShowToUser(boolean waitingShowToUser) {
+        userVisibleController.setWaitingShowToUser(waitingShowToUser);
+    }
+
+    @Override
+    public boolean isWaitingShowToUser() {
+        return userVisibleController.isWaitingShowToUser();
+    }
+
+    @Override
+    public boolean isVisibleToUser() {
+        return userVisibleController.isVisibleToUser();
+    }
+
+    @Override
+    public void callSuperSetUserVisibleHint(boolean isVisibleToUser) {
+        super.setUserVisibleHint(isVisibleToUser);
+    }
+
+    @Override
+    public void onVisibleToUserChanged(boolean isVisibleToUser, boolean invokeInResumeOrPause) {
+        if (isFirstVisiableToUser) {
+            isFirstVisiableToUser = false;
+            onFirstToVisible();
+        }
+    }
+
+    protected void onFirstToVisible() {
+
+    }
+
     /**
      * 是否使用 EventBus
      * Arms 核心库现在并不会依赖某个 EventBus, 要想使用 EventBus, 还请在项目中自行依赖对应的 EventBus
@@ -113,4 +170,27 @@ public abstract class BaseFragment<P extends IPresenter> extends Fragment implem
     public boolean useEventBus() {
         return true;
     }
+
+    public void showLoading() {
+
+    }
+
+    public void hideLoading() {
+
+    }
+
+    public void killMyself() {
+
+    }
+
+    @Override
+    public void setData(@Nullable Object data) {
+
+    }
+
+    public void launchActivity(Class<?> cls) {
+        Intent intent = new Intent(getActivity(), cls);
+        ArmsUtils.startActivity(intent);
+    }
+
 }
