@@ -27,7 +27,6 @@ import com.jess.arms.base.BaseActivity;
 import com.jess.arms.base.DefaultAdapter;
 import com.jess.arms.di.component.AppComponent;
 import com.jess.arms.utils.ArmsUtils;
-import com.paginate.Paginate;
 import com.tbruyelle.rxpermissions2.RxPermissions;
 
 import javax.inject.Inject;
@@ -65,7 +64,6 @@ public class UserActivity extends BaseActivity<UserPresenter> implements UserCon
     @Inject
     RecyclerView.Adapter mAdapter;
 
-    private Paginate mPaginate;
     private boolean isLoadingMore;
 
     @Override
@@ -164,29 +162,7 @@ public class UserActivity extends BaseActivity<UserPresenter> implements UserCon
      * 初始化Paginate,用于加载更多
      */
     private void initPaginate() {
-        if (mPaginate == null) {
-            Paginate.Callbacks callbacks = new Paginate.Callbacks() {
-                @Override
-                public void onLoadMore() {
-                    mPresenter.requestUsers(false);
-                }
-
-                @Override
-                public boolean isLoading() {
-                    return isLoadingMore;
-                }
-
-                @Override
-                public boolean hasLoadedAllItems() {
-                    return false;
-                }
-            };
-
-            mPaginate = Paginate.with(mRecyclerView, callbacks)
-                    .setLoadingTriggerThreshold(0)
-                    .build();
-            mPaginate.setHasMoreDataToLoad(false);
-        }
+        mPresenter.requestUsers(false);
     }
 
     @Override
@@ -194,6 +170,5 @@ public class UserActivity extends BaseActivity<UserPresenter> implements UserCon
         DefaultAdapter.releaseAllHolder(mRecyclerView);//super.onDestroy()之后会unbind,所有view被置为null,所以必须在之前调用
         super.onDestroy();
         this.mRxPermissions = null;
-        this.mPaginate = null;
     }
 }
